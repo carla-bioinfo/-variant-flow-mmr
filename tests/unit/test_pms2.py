@@ -3,8 +3,8 @@ Unit tests for PMS2 Assessment Module
 """
 
 import pytest
-from src.vflow.core.pms2_assessment import PMS2Assessor
-from src.vflow.core.models import PMS2AssessmentResult, SeverityLevel
+from vflow.core.pms2_assessment import PMS2Assessor
+from vflow.core.models import PMS2AssessmentResult, SeverityLevel
 
 
 class TestPMS2Assessor:
