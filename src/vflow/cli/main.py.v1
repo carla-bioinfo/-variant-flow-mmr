@@ -1,0 +1,53 @@
+"""
+VariantFlow-MMR CLI
+Ferramenta profissional para análise de variantes MMR
+"""
+
+import typer
+from typing import Optional
+from pathlib import Path
+from rich.console import Console
+from rich.panel import Panel
+
+# Instancia a aplicação Typer
+app = typer.Typer(
+    name="variantflow",
+    help="Análise profissional de variantes Lynch/MMR",
+    no_args_is_help=True,
+)
+
+console = Console()
+
+
+@app.command()
+def version():
+    """
+    Mostra a versão do VariantFlow-MMR
+    """
+    console.print(Panel(
+        "VariantFlow-MMR v0.1.0\nETAPA 4: CLI + Typer",
+        title="[bold cyan]VariantFlow[/bold cyan]",
+        expand=False,
+    ))
+
+
+@app.command()
+def analyze(
+    vcf_file: Path = typer.Argument(..., help="Arquivo VCF para análise"),
+    gene: str = typer.Option("MLH1", help="Gene MMR: MLH1, MSH2, MSH6, PMS2, EPCAM"),
+    output: Optional[Path] = typer.Option(None, help="Arquivo de saída JSON"),
+):
+    """
+    Analisa variantes em arquivo VCF
+    
+    Exemplo:
+    $ vflow analyze data/sample.vcf --gene PMS2 --output results.json
+    """
+    console.print(f"[bold cyan]Analisando[/bold cyan]: {vcf_file}")
+    console.print(f"[bold green]Gene[/bold green]: {gene}")
+    if output:
+        console.print(f"[bold yellow]Saída[/bold yellow]: {output}")
+
+
+if __name__ == "__main__":
+    app()

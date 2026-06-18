@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict
 import logging
 
-from src.vflow.core.models import (
+from vflow.core.models import (
     PMS2AssessmentResult, 
     SeverityLevel, 
     CoverageMetrics
