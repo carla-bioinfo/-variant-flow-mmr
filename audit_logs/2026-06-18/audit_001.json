@@ -1,0 +1,24 @@
+{
+  "id": "audit_001",
+  "timestamp": "2026-06-18T11:13:17.618410+00:00",
+  "module": "ACMGEvidenceCollector",
+  "method": "collect_evidence",
+  "user": "bioinfo",
+  "version": "0.1.0",
+  "git_commit": "4238ed4bb69f6fbb8d9f6f7c580fabaf7e362558",
+  "git_branch": "stage3-part2",
+  "git_clean": false,
+  "input_params": {
+    "gene": "PMS2",
+    "chromosome": "chr7",
+    "position": 6012876,
+    "reference": "C",
+    "alternate": "T"
+  },
+  "input_hash": "sha256:733c591e4802752602585cae7240348754e02b498480d62ce43e697b151a928b",
+  "output_hash": "sha256:4b2e4a45eca78cea7b47a17ab93e14d5e412ed3bc94b95e5fce05d2ac28226cf",
+  "duration_seconds": 0.234,
+  "status": "SUCCESS",
+  "error_message": null,
+  "warnings": []
+}
