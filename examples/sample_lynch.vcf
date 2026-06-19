@@ -1,0 +1,10 @@
+##fileformat=VCFv4.2
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Read depth">
+##INFO=<ID=MQ,Number=1,Type=Integer,Description="Mapping quality">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+##FORMAT=<ID=DP,Number=1,Type=Integer,Description="Read depth">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	sample1
+chr3	37067140	.	A	G	100	PASS	DP=50;MQ=60	GT:DP	0/1:50
+chr2	47641559	.	GGGG	G	100	PASS	DP=45;MQ=55	GT:DP	0/1:45
+chr2	47677091	.	C	T	100	PASS	DP=48;MQ=58	GT:DP	0/1:48
+chr7	6022457	.	AG	A	100	PASS	DP=52;MQ=60	GT:DP	0/1:52
