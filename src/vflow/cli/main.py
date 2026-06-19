@@ -250,5 +250,70 @@ def qc(
         raise typer.Exit(code=1)
 
 
+
+@app.command()
+def report(
+    vcf_file: Path = typer.Argument(
+        ..., 
+        help="Arquivo VCF para análise",
+        exists=True
+    ),
+    output: Path = typer.Option(
+        Path("relatorio.html"),
+        help="Arquivo HTML de saída"
+    ),
+):
+    """Gera relatório HTML com gráficos de variantes."""
+    
+    console.print("\n[bold cyan]Gerando Relatório HTML[/bold cyan]\n")
+    console.print(f"[cyan]Input VCF:[/cyan] {vcf_file}")
+    console.print(f"[cyan]Output HTML:[/cyan] {output}\n")
+    
+    try:
+        from vflow.reports.visualizations import VariantVisualizer
+        from vflow.reports.html_reporter import HTMLReporter
+        import pandas as pd
+        
+        with console.status("[bold cyan]Lendo VCF..."):
+            parser = VCFParser(str(vcf_file))
+            variants = list(parser.parse())
+        
+        data = pd.DataFrame([
+            {
+                'chrom': v.chrom,
+                'pos': v.pos,
+                'ref': v.ref,
+                'alt': v.alt,
+                'qual': v.qual,
+                'gene': 'Unknown',
+                'variant_type': 'SNV' if len(v.ref) == len(v.alt) else 'Indel',
+            }
+            for v in variants
+        ])
+        
+        console.print(f"[green]✓ {len(data)} variantes lidas[/green]")
+        
+        with console.status("[bold cyan]Gerando gráficos..."):
+            viz = VariantVisualizer(output_dir=output.parent)
+            charts = viz.generate_all_visualizations(data)
+        
+        console.print(f"[green]✓ Gráficos criados[/green]")
+        
+        with console.status("[bold cyan]Criando HTML..."):
+            reporter = HTMLReporter(output_dir=output.parent)
+            html = reporter.render_html(
+                title=f"VariantFlow-MMR: {vcf_file.name}",
+                variant_data=data,
+                chart_paths=charts
+            )
+            reporter.save_report(html, output.name)
+        
+        console.print(f"[green]✓ Relatório: {output}[/green]\n")
+        
+    except Exception as e:
+        console.print(f"[red]✗ Erro: {str(e)}[/red]")
+        raise typer.Exit(code=1)
+
+
 if __name__ == "__main__":
     app()
