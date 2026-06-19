@@ -341,3 +341,158 @@ class HomologyAnalyzer:
         else:
             return "LOW: Standard NGS interpretation acceptable"
 
+
+
+class PseudogeneRiskDetector:
+    """
+    Calculates pseudogene contamination risk score (0-100).
+    
+    Combines multiple factors:
+    - Homology percentage
+    - Coverage depth
+    - Variant type
+    - Mapeability
+    
+    Returns risk classification: LOW, MEDIUM, HIGH, CRITICAL
+    """
+    
+    def __init__(self):
+        """Initialize PseudogeneRiskDetector with scoring thresholds"""
+        # Risk score thresholds
+        self.RISK_THRESHOLDS = {
+            "LOW": (0, 25),
+            "MEDIUM": (25, 50),
+            "HIGH": (50, 75),
+            "CRITICAL": (75, 100)
+        }
+        
+        # Weighting factors for risk calculation
+        self.WEIGHTS = {
+            "homology": 0.40,      # 40% based on homology %
+            "coverage": 0.30,      # 30% based on coverage
+            "mapeability": 0.20,   # 20% based on mapeability
+            "variant_type": 0.10   # 10% based on variant type
+        }
+        
+        logger.info("PseudogeneRiskDetector initialized")
+    
+    def calculate_risk_score(
+        self,
+        homology_pct: float,
+        coverage_depth: float,
+        mapeability: float,
+        variant_type: str = "SNV"
+    ) -> dict:
+        """
+        Calculate pseudogene risk score using weighted factors.
+        
+        Args:
+            homology_pct: Percentage homology (0-100)
+            coverage_depth: Mean coverage depth (reads)
+            mapeability: Mapeability score (0-1)
+            variant_type: Type of variant (SNV, indel, deletion, duplication)
+        
+        Returns:
+            dict with risk_score, risk_level, confidence
+        """
+        
+        # Component 1: Homology contribution (0-100 scale)
+        # Higher homology = higher risk
+        homology_score = homology_pct  # Already 0-100
+        
+        # Component 2: Coverage contribution (0-100 scale)
+        # Lower coverage = higher risk
+        # At 20x: score=100 (worst), at 100x: score=40 (better)
+        if coverage_depth <= 20:
+            coverage_score = 100
+        elif coverage_depth >= 100:
+            coverage_score = 40
+        else:
+            # Linear interpolation: 20x → 100, 100x → 40
+            coverage_score = 100 - ((coverage_depth - 20) / 80) * 60
+        
+        # Component 3: Mapeability contribution (0-100 scale)
+        # Lower mapeability = higher risk
+        # At 0.3: score=100 (very hard to map), at 0.9: score=20 (easy)
+        if mapeability <= 0.3:
+            mapeability_score = 100
+        elif mapeability >= 0.9:
+            mapeability_score = 20
+        else:
+            # Linear interpolation: 0.3 → 100, 0.9 → 20
+            mapeability_score = 100 - ((mapeability - 0.3) / 0.6) * 80
+        
+        # Component 4: Variant type contribution (0-100 scale)
+        # Indels in low-mapeability regions = higher risk
+        if variant_type.upper() == "INDEL":
+            variant_score = 60  # Higher risk for indels
+        elif variant_type.upper() == "DELETION":
+            variant_score = 80  # Even higher for deletions
+        elif variant_type.upper() == "DUPLICATION":
+            variant_score = 70  # High for duplications
+        else:  # SNV (default)
+            variant_score = 40  # Lower risk for SNVs
+        
+        # Calculate weighted risk score
+        risk_score = (
+            homology_score * self.WEIGHTS["homology"] +
+            coverage_score * self.WEIGHTS["coverage"] +
+            mapeability_score * self.WEIGHTS["mapeability"] +
+            variant_score * self.WEIGHTS["variant_type"]
+        )
+        
+        # Classify risk level
+        risk_level = self._classify_risk(risk_score)
+        
+        # Calculate confidence (higher score = lower confidence)
+        confidence = 100 - risk_score
+        
+        return {
+            "risk_score": round(risk_score, 1),
+            "risk_level": risk_level,
+            "confidence_pct": round(confidence, 1),
+            "components": {
+                "homology_score": round(homology_score, 1),
+                "coverage_score": round(coverage_score, 1),
+                "mapeability_score": round(mapeability_score, 1),
+                "variant_score": round(variant_score, 1)
+            }
+        }
+    
+    def _classify_risk(self, risk_score: float) -> str:
+        """
+        Classify risk level based on score.
+        
+        Args:
+            risk_score: Risk score (0-100)
+        
+        Returns:
+            Risk level string
+        """
+        for level, (min_score, max_score) in self.RISK_THRESHOLDS.items():
+            if min_score <= risk_score < max_score:
+                return level
+        return "CRITICAL"  # Fallback for score >= 75
+    
+    def interpret_result(self, risk_dict: dict) -> str:
+        """
+        Provide clinical interpretation of risk score.
+        
+        Args:
+            risk_dict: Result from calculate_risk_score()
+        
+        Returns:
+            Clinical interpretation text
+        """
+        risk_level = risk_dict["risk_level"]
+        confidence = risk_dict["confidence_pct"]
+        
+        interpretations = {
+            "LOW": f"Low pseudogene contamination risk. Interpretation confidence: {confidence}%",
+            "MEDIUM": f"Moderate pseudogene risk. Recommend caution. Confidence: {confidence}%",
+            "HIGH": f"High pseudogene contamination risk. Orthogonal validation recommended. Confidence: {confidence}%",
+            "CRITICAL": f"CRITICAL pseudogene risk. Resequencing required before clinical reporting. Confidence: {confidence}%"
+        }
+        
+        return interpretations.get(risk_level, "Unknown risk level")
+
