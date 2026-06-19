@@ -232,3 +232,112 @@ if __name__ == "__main__":
     result3 = assessor.assess_variant("PMS2", position=50000, variant_type="SNV")
     print("Test 3: SNV outside critical regions")
     print(f"Risk: {result3.pseudogene_risk.value.upper()}")
+
+
+# ============================================================================
+# ETAPA 7: HomologyAnalyzer - Detect pseudogene contamination risk
+# ============================================================================
+
+class HomologyAnalyzer:
+    """
+    Analyzes PMS2 regions with high homology to pseudogene PMS2CL.
+    
+    PMS2 has ~95% identity with pseudogene in exons 11-15.
+    This class identifies high-risk regions for variant misinterpretation.
+    """
+    
+    # Regions with HIGH homology to PMS2CL (based on BLAST analysis)
+    HOMOLOGY_REGIONS = {
+        "exon_11": {
+            "chr_position_start": 33560000,
+            "chr_position_end": 33561500,
+            "homology_pct": 95.2,
+            "mapeability": 0.45,  # Low mapability = hard to map reads correctly
+            "risk_level": "CRITICAL",
+            "description": "DNA binding domain - HIGH pseudogene contamination"
+        },
+        "exon_15": {
+            "chr_position_start": 33573000,
+            "chr_position_end": 33574200,
+            "homology_pct": 87.5,
+            "mapeability": 0.62,
+            "risk_level": "HIGH",
+            "description": "Exon 15 junction - MEDIUM pseudogene risk"
+        },
+        "exon_5_6": {
+            "chr_position_start": 33535000,
+            "chr_position_end": 33536500,
+            "homology_pct": 82.1,
+            "mapeability": 0.70,
+            "risk_level": "MEDIUM",
+            "description": "Exon 5-6 region - Some pseudogene overlap"
+        }
+    }
+    
+    def __init__(self):
+        """Initialize HomologyAnalyzer"""
+        self.regions = self.HOMOLOGY_REGIONS
+        logger.info(f"HomologyAnalyzer initialized with {len(self.regions)} high-homology regions")
+    
+    def analyze_position(self, position: int) -> dict:
+        """
+        Analyze if a genomic position is in high-homology region.
+        
+        Args:
+            position: Genomic position (bp)
+        
+        Returns:
+            dict with homology info or empty dict if not in region
+        """
+        for region_name, region_data in self.regions.items():
+            if region_data["chr_position_start"] <= position <= region_data["chr_position_end"]:
+                return {
+                    "in_homology_region": True,
+                    "region_name": region_name,
+                    "homology_pct": region_data["homology_pct"],
+                    "mapeability": region_data["mapeability"],
+                    "risk_level": region_data["risk_level"],
+                    "description": region_data["description"]
+                }
+        
+        return {"in_homology_region": False}
+    
+    def get_risk_from_homology(self, homology_pct: float) -> str:
+        """
+        Classify risk level based on homology percentage.
+        
+        Args:
+            homology_pct: Percentage homology (0-100)
+        
+        Returns:
+            Risk level: LOW, MEDIUM, HIGH, CRITICAL
+        """
+        if homology_pct >= 90:
+            return "CRITICAL"
+        elif homology_pct >= 85:
+            return "HIGH"
+        elif homology_pct >= 80:
+            return "MEDIUM"
+        else:
+            return "LOW"
+    
+    def recommend_validation(self, homology_pct: float, coverage_depth: float) -> str:
+        """
+        Recommend orthogonal validation based on homology + coverage.
+        
+        Args:
+            homology_pct: Percentage homology
+            coverage_depth: Mean coverage depth at position
+        
+        Returns:
+            Recommendation text
+        """
+        if homology_pct >= 90 and coverage_depth < 50:
+            return "CRITICAL: Sanger + long-read sequencing required"
+        elif homology_pct >= 85 and coverage_depth < 75:
+            return "HIGH: Sanger sequencing strongly recommended"
+        elif homology_pct >= 80 and coverage_depth < 100:
+            return "MEDIUM: Consider ddPCR or targeted Sanger"
+        else:
+            return "LOW: Standard NGS interpretation acceptable"
+
