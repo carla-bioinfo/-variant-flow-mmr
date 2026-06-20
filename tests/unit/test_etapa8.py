@@ -83,29 +83,60 @@ class TestResultsAggregator:
     # ===== TESTE 2: Adiciona análise ACMG =====
     def test_aggregator_stores_analysis_report(self):
         """Testa que agregador armazena AnalysisReport corretamente"""
-        # TODO: Mock AnalysisReport e verificar armazenamento
-        pass
+        mock_report = Mock()
+        mock_report.variants_total = 10
+        self.aggregator.add_analysis_report(mock_report)
+        assert 'analysis_report' in self.aggregator.consolidated_data
+        assert self.aggregator.consolidated_data['analysis_report'] == mock_report
     
-    # ===== TESTE 3: Adiciona métricas QC =====
+    # ===== TESTE 3: Adiciona QCFlags =====
     def test_aggregator_stores_qc_flags(self):
         """Testa que agregador armazena QCFlags corretamente"""
-        # TODO: Mock QCFlags e verificar armazenamento
-        pass
+        mock_flags = [Mock(severity='HIGH'), Mock(severity='LOW')]
+        self.aggregator.add_qc_flags(mock_flags)
+        assert 'qc_flags' in self.aggregator.consolidated_data
+        assert len(self.aggregator.consolidated_data['qc_flags']) == 2
     
     # ===== TESTE 4: Consolidação une dados =====
     def test_aggregator_consolidate_merges_all_data(self):
         """Testa que consolidate() une TODOS os dados em um dict único"""
-        # TODO: Preencher agregador com dados mock e verificar consolidação
-        pass
+        # Adicionar dados
+        self.aggregator.add_analysis_report(Mock(variants_total=10))
+        self.aggregator.add_qc_flags([Mock(severity='HIGH')])
+        self.aggregator.add_pms2_results({'score': 0.8})
+        self.aggregator.add_coverage_metrics({'coverage': 20})
+        
+        # Consolidar
+        result = self.aggregator.consolidate()
+        
+        # Verificar que tem todos os dados
+        assert result is not None
+        assert 'analysis_report' in result
+        assert 'qc_flags' in result
+        assert 'pms2_results' in result
+        assert 'coverage_metrics' in result
     
     # ===== TESTE 5: Saída é JSON-serializable =====
     def test_aggregator_output_is_json_compatible(self):
         """Testa que output consolidado pode ser serializado para JSON"""
-        # TODO: Executar json.dumps() no output sem erro
-        pass
+        import json
+        
+        # Adicionar dados simples
+        self.aggregator.consolidated_data = {
+            'test_key': 'test_value',
+            'nested': {'key': 'value'},
+        }
+        
+        # Tentar serializar para JSON
+        output_dict = self.aggregator.to_dict()
+        json_str = json.dumps(output_dict)
+        
+        # Se não lançar erro, passou
+        assert json_str is not None
 
 
 # ============================================================================
+# TESTS: ETAPA 8 Integration# ============================================================================
 # TESTS: ETAPA 8 Integration (2 testes end-to-end)
 # ============================================================================
 class TestETAPA8Integration:
