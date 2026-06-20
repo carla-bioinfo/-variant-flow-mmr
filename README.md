@@ -1,340 +1,447 @@
-# 🧬 VariantFlow-MMR: Análise Genômica de Síndrome de Lynch
+🧬 VariantFlow-MMR: Análise Genômica de Síndrome de Lynch
+Status: ETAPA 8 Completa ✅ | Score: 8.0/10
+Próxima: ETAPA 9 (CLI + Deployment)
+Data: 19 de Junho de 2026
 
-**Status**: ETAPA 7 Completa ✅ | Score: 7.0/10  
-**Próxima**: ETAPA 8 (Integração + Relatórios HTML)  
-**Data**: 18 de Junho de 2026
+════════════════════════════════════════════════════════════════════════════
 
----
+📋 Visão Geral
+Sistema de análise de variantes MMR (Mismatch Repair) com foco especial em PMS2, o gene mais desafiador devido à pseudogene contamination.
 
-## 📋 Visão Geral
+Objetivo: Detectar variantes patogênicas em genes MLH1, MSH2, MSH6, PMS2 e EPCAM com confiabilidade clínica.
 
-Sistema de **análise de variantes MMR (Mismatch Repair)** com foco especial em **PMS2**, o gene mais desafiador devido à pseudogene contamination.
+════════════════════════════════════════════════════════════════════════════
 
-**Objetivo**: Detectar variantes patogênicas em genes MLH1, MSH2, MSH6, PMS2 e EPCAM com confiabilidade clínica.
+🎯 Status do Projeto (COMPLETO ATÉ ETAPA 8)
 
----
+✅ ETAPA 1-6: Funcionalidade Base
+├─ VCF Parsing (pysam)
+├─ ACMG Classification
+├─ HTML Report Generation
+└─ Professional Logging
 
-## 🎯 Status do Projeto
+✅ ETAPA 7: QC Metrics Clínicas (39 testes) ✅
+├─ HomologyAnalyzer (detecta pseudogene PMS2)
+├─ PseudogeneRiskDetector (score de risco)
+├─ BreadthAnalyzer (% bases ≥ threshold)
+├─ UniformityAnalyzer (fold-80 metric)
+└─ SeverityClassifier (ações clínicas)
 
-### ✅ ETAPA 7: PMS2 Assessment Profundo + Métricas QC Clínicas
+✅ ETAPA 8: Pipeline Integration (12 testes) ← **NOVO**
+├─ PipelineIntegrator (orquestração série+paralelo)
+├─ ResultsAggregator (consolidação de dados)
+├─ ThreadPoolExecutor (6 análises paralelas)
+└─ Unified Dataset (pronto para HTML)
 
-**Implementado**:
-- ✅ **HomologyAnalyzer** (109 linhas)
-  - Detecta regiões com alta homologia ao pseudogene PMS2CL
-  - 3 regiões críticas mapeadas (exon 11, 15, 5-6)
-  - Recomenda validação ortogonal
+⏳ ETAPA 9: CLI + Deployment (próximo)
+├─ `vflow pipeline input.vcf --output dir/`
+├─ End-to-end testing
+└─ Performance profiling
 
-- ✅ **PseudogeneRiskDetector** (155 linhas)
-  - Calcula score de risco pseudogênico (0-100)
-  - 4 fatores ponderados: homologia (40%), cobertura (30%), mapeability (20%), tipo variante (10%)
-  - Classifica em 4 níveis: LOW, MEDIUM, HIGH, CRITICAL
+════════════════════════════════════════════════════════════════════════════
 
-- ✅ **BreadthAnalyzer** (169 linhas)
-  - % de bases com cobertura ≥ 20x, 50x, 100x
-  - Status: PASS/WARNING/FAIL
-  - Detecta "blind spots" em cobertura
+📊 Estatísticas Completas
 
-- ✅ **UniformityAnalyzer** (136 linhas)
-  - Fold-80 metric (80º percentil / mediana)
-  - Detecta amplification bias
-  - Status: EXCELLENT/GOOD/ACCEPTABLE/POOR
+| ETAPA | Componente | Linhas | Testes | Status |
+|-------|-----------|--------|-
+| 3-6 | Base Modules | ~1100 | 50+ | ✅ |
+| 7 | QC Metrics | ~1490 | 39/39 | ✅ |
+| **8** | **Pipeline Integration** | **254** | **12/12** | **✅** |
+| **TOTAL** | | **~2844** | **101** | **✅** |
 
-- ✅ **SeverityClassifier** (262 linhas)
-  - Converte métricas técnicas em ações clínicas
-  - Símbolos: ℹ️ LOW / ⚠️ MEDIUM / 🚨 HIGH / 🚫 CRITICAL
-  - Agregação de múltiplos sinais
+Score esperado: 8.0/10 ✅
 
-**Testes**: 39/39 passando ✅
+════════════════════════════════════════════════════════════════════════════
 
----
+🏗️ ETAPA 8: Pipeline Integration (NOVO)
 
-## 📊 Estatísticas
+### O QUÊ?
+Orquestração completa com arquitetura **Série + Paralelo**:
+- SÉRIE 1: VCFParser → variantes
+- SÉRIE 2: VariantAnalyzer → AnalysisReport
+- PARALELO 3: ThreadPoolExecutor (6 análises simultâneas)
+- SÉRIE 4: ResultsAggregator → Dataset consolidado
 
-### ETAPA 7 Adicionadas
-Total linhas: 1,490
+### Componentes
+src/vflow/pipeline/
 
-├── pms2_assessment.py:    234 → 498 linhas (+264)
+├── init.py
 
-├── coverage.py:           138 → 307 linhas (+169)
+├── integrator.py       (161 linhas - PipelineIntegrator)
 
-├── quality_gates.py:        0 → 262 linhas (NOVO)
+└── aggregator.py       (93 linhas - ResultsAggregator)
+tests/unit/test_etapa8.py (12 testes)
 
-└── test_etapa7.py:          0 → 423 linhas (NOVO)
-Classes novas: 5
+├── TestPipelineIntegrator (5/5 testes ✅)
 
-Testes: 39 (todos passando)
+├── TestResultsAggregator (5/5 testes ✅)
 
-Commits: 6
-### Projeto Total
-Linhas de código: ~1,490 (ETAPA 7)
-
-Score esperado: 7.0/10
-
-Próximo milestone: 8.0/10 (ETAPA 8)
----
-
-## 🏗️ Arquitetura
-
-### Fluxo de Análise Completo
-Input (Gene, Position, Coverage)
-
-↓
-
-HomologyAnalyzer
-
-├─ "Está em zona pseudogene?"
-
-├─ homology_pct: 0-100
-
-└─ risk_level: LOW/MEDIUM/HIGH/CRITICAL
+└── TestETAPA8Integration (2/2 testes ✅)
+### Arquitetura Visual
+VCF Input
 
 ↓
 
-PseudogeneRiskDetector
+[SÉRIE 1] VCFParser
 
-├─ Score de risco: 0-100
-
-├─ 4 fatores ponderados
-
-└─ Confidence: 0-100%
+└─ variants: List[Variant]
 
 ↓
 
-BreadthAnalyzer + UniformityAnalyzer
+[SÉRIE 2] VariantAnalyzer
 
-├─ Breadth (% bases ≥ threshold)
-
-├─ Fold-80 (uniformidade)
-
-└─ Status: PASS/WARNING/FAIL
+└─ AnalysisReport
 
 ↓
 
-SeverityClassifier
+[PARALELO 3] ThreadPoolExecutor (max_workers=6)
 
-├─ Agrega múltiplos sinais
+├─ PMS2Assessor
 
-├─ Classifica por severidade
+├─ CoverageAnalyzer
 
-└─ Recomendação: Monitor/Review/Validate/Resequence
+├─ BreadthAnalyzer
+
+├─ UniformityAnalyzer
+
+├─ HomologyAnalyzer
+
+└─ SeverityClassifier
+
+↓ (aguarda .result() em todas)
+
+[SÉRIE 4] ResultsAggregator
+
+├─ add_analysis_report()
+
+├─ add_qc_flags()
+
+├─ add_pms2_results()
+
+├─ add_coverage_metrics()
+
+├─ add_breadth_metrics()
+
+├─ add_uniformity_metrics()
+
+├─ add_homology_results()
+
+├─ add_severity_results()
+
+└─ consolidate() → Dict (JSON-serializable)
 
 ↓
 
-Output (Actionable Insight)
----
+Output: Unified Dataset
+### Testes ETAPA 8
 
-## 🚀 Próxima Etapa: ETAPA 8
+| Teste | O QUÊ | Status |
+|-------|-------|--------|
+| `test_pipeline_rejects_nonexistent_vcf` | Validação de entrada | ✅ |
+| `test_pipeline_vcf_parser_called_first` | Ordem série (parse→analyze) | ✅ |
+| `test_pipeline_variant_analyzer_called_after_parse` | Sequência correta | ✅ |
+| `test_pipeline_waits_for_all_parallel_analyses` | Sincronização paralelo | ✅ |
+| `test_pipeline_returns_unified_dataset_with_expected_keys` | Estrutura de saída | ✅ |
+| `test_aggregator_init_creates_empty_storage` | Init agregador | ✅ |
+| `test_aggregator_stores_analysis_report` | Armazena dados | ✅ |
+| `test_aggregator_stores_qc_flags` | Armazena flags | ✅ |
+| `test_aggregator_consolidate_merges_all_data` | Consolida tudo | ✅ |
+| `test_aggregator_output_is_json_compatible` | JSON-serializable | ✅ |
+| `test_full_pipeline_vcf_to_dataset` | End-to-end | ✅ |
+| `test_full_pipeline_output_compatible_with_html_generator` | HTML compatible | ✅ |
 
-### O que será implementado:
-1. **PipelineIntegrator** (~200 linhas)
-   - Conecta HomologyAnalyzer → PseudogeneRiskDetector → SeverityClassifier
-   
-2. **HTMLReportGenerator** (~300 linhas)
-   - Gera relatórios clínicos em HTML com Jinja2
-   - Gráficos de cobertura
-   - Visualização de severidade com cores
-   
-3. **ResultsAggregator** (~150 linhas)
-   - Consolida múltiplos resultados
-   - Prepara dados para relatório
-   
-4. **CLI Interface** (~100 linhas)
-   - Linha de comando com Typer
-   - `variant-flow analyze --gene PMS2 --position 33560500`
-   
-5. **Testes** (~250 linhas)
-   - Testes para cada novo componente
-   - Testes de integração
+**Total: 12/12 passando ✅**
 
-**Meta**: 1,000 linhas + 40+ testes | Score: 8.0/10
+════════════════════════════════════════════════════════════════════════════
 
----
+🚀 Como Começar
 
-## 🔧 Setup & Instalação
+### 1. Setup Rápido
 
-### Pré-requisitos
-- Python 3.9+
-- pip/virtualenv
-
-### Instalar
 ```bash
-# Clone o repositório
+# Clonar projeto
 git clone https://github.com/carla-bioinfo/variant-flow-mmr.git
 cd variant-flow-mmr
 
-# Criar e ativar venv
-python3 -m venv venv
-source venv/bin/activate
+# Ativar venv
+source venv/bin/activate  # ou: . venv/Scripts/activate (Windows)
 
 # Instalar dependências
 pip install -r requirements.txt
 ```
 
-### Rodar Testes
-```bash
-# ETAPA 7 tests
-pytest tests/unit/test_etapa7.py -v
+### 2. Rodar Testes
 
-# Todos os testes
-pytest tests/ -v --cov=src/vflow
+```bash
+# Todos os testes ETAPA 8
+pytest tests/unit/test_etapa8.py -v --tb=short
+
+# Resultado esperado
+===================== 12 passed in 0.06s =====================
+
+# Apenas PipelineIntegrator
+pytest tests/unit/test_etapa8.py::TestPipelineIntegrator -v
+
+# Apenas ResultsAggregator
+pytest tests/unit/test_etapa8.py::TestResultsAggregator -v
+
+# Todos os testes do projeto
+pytest tests/unit/ -v --tb=short
 ```
 
----
+### 3. Usar Programaticamente
 
-## 📁 Estrutura do Projeto
+```python
+from src.vflow.pipeline.integrator import PipelineIntegrator
+
+# Executar pipeline completo
+integrator = PipelineIntegrator(
+    vcf_file='examples/sample_lynch.vcf',
+    min_depth=20,
+    min_qual=20.0,
+    num_threads=6
+)
+
+results = integrator.run()
+# → Dict com: analysis_report, parallel_analyses, timestamp, metadata
+```
+
+════════════════════════════════════════════════════════════════════════════
+
+📁 Estrutura Atual do Projeto
 variant-flow-mmr/
 
 ├── src/vflow/
 
+│   ├── vcf_parser.py              (VCFParser)
+
+│   ├── analyzer.py                (VariantAnalyzer)
+
 │   ├── core/
 
-│   │   ├── pms2_assessment.py    (498 linhas - ETAPA 7)
+│   │   ├── models.py              (AnalysisReport, QCFlag, etc)
 
-│   │   ├── coverage.py            (307 linhas - ETAPA 7)
+│   │   ├── pms2_assessment.py     (PMS2Assessor, HomologyAnalyzer)
 
-│   │   ├── models.py
+│   │   ├── coverage.py            (CoverageAnalyzer, BreadthAnalyzer, UniformityAnalyzer)
 
-│   │   └── init.py
+│   │   ├── acmg_evidence.py       (ACMGEvidenceCollector)
+
+│   │   └── audit.py               (AuditTrail)
+
+│   ├── reports/
+
+│   │   ├── html_reporter.py       (HTMLReportGenerator)
+
+│   │   └── visualizations.py      (Gráficos)
 
 │   ├── validators/
 
-│   │   └── quality_gates.py       (262 linhas - ETAPA 7)
+│   │   └── quality_gates.py       (SeverityClassifier, QC)
 
-│   ├── reporters/                 (NOVO - ETAPA 8)
+│   ├── pipeline/                  ← NOVO - ETAPA 8
 
-│   │   └── html_generator.py
+│   │   ├── integrator.py          (PipelineIntegrator - 161 linhas)
 
-│   ├── cli.py                     (NOVO - ETAPA 8)
+│   │   └── aggregator.py          (ResultsAggregator - 93 linhas)
+
+│   ├── cli/
+
+│   │   └── main.py                (Linha de comando - será atualizado em ETAPA 9)
 
 │   └── init.py
 
-├── tests/
+│
 
-│   ├── unit/
+├── tests/unit/
 
-│   │   └── test_etapa7.py         (423 linhas - 39 testes)
+│   ├── test_etapa7.py             (39 testes - QC Metrics)
 
-│   └── integration/
+│   ├── test_etapa8.py             (12 testes - Pipeline) ← NOVO
+
+│   ├── test_pms2.py
+
+│   ├── test_models.py
+
+│   ├── test_acmg.py
+
+│   └── test_audit.py
+
+│
+
+├── examples/
+
+│   └── sample_lynch.vcf           (VCF de teste Lynch Syndrome)
+
+│
 
 ├── docs/
 
-│   └── ETAPA_8_SETUP.md           (Preparação próxima etapa)
+│   └── ETAPA_8_SETUP.md           (Preparação anterior)
+
+│
 
 ├── requirements.txt
 
 ├── setup.py
 
-└── README.md
----
+├── README.md                      (este arquivo)
 
-## 📚 Documentação
+└── .git/
+════════════════════════════════════════════════════════════════════════════
 
-- **ETAPA_8_SETUP.md**: Preparação para próxima etapa
-- **src/vflow/core/pms2_assessment.py**: Docstrings detalhadas
-- **src/vflow/validators/quality_gates.py**: Interpretações clínicas
+🧪 Testes Detalhados
 
----
-
-## 🧪 Testes
-
-### ETAPA 7 - 39 Testes
-TestHomologyAnalyzer:           9 testes ✅
-
-TestPseudogeneRiskDetector:     6 testes ✅
-
-TestBreadthAnalyzer:            6 testes ✅
-
-TestUniformityAnalyzer:         6 testes ✅
-
-TestSeverityClassifier:        10 testes ✅
-
-TestETAPA7Integration:          2 testes ✅
-
-─────────────────────────────────────────
-
-Total:                         39 testes ✅
-### Executar testes
+### ETAPA 7: QC Metrics (39 testes)
 ```bash
-# Apenas ETAPA 7
 pytest tests/unit/test_etapa7.py -v
 
-# Com cobertura
-pytest tests/unit/test_etapa7.py -v --cov=src/vflow --cov-report=html
+TestHomologyAnalyzer:        9 testes ✅
+TestPseudogeneRiskDetector:  6 testes ✅
+TestBreadthAnalyzer:         6 testes ✅
+TestUniformityAnalyzer:      6 testes ✅
+TestSeverityClassifier:      10 testes ✅
+TestETAPA7Integration:       2 testes ✅
 ```
 
----
+### ETAPA 8: Pipeline Integration (12 testes)
+```bash
+pytest tests/unit/test_etapa8.py -v
 
-## 💡 Conceitos Principais
+TestPipelineIntegrator:      5 testes ✅
+TestResultsAggregator:       5 testes ✅
+TestETAPA8Integration:       2 testes ✅
+```
 
-### PMS2 e Pseudogene
-PMS2 é o único gene MMR com pseudogene significativo (PMS2CL, ~95% identidade em exon 11-15). Isto causa:
-- Difícil mapeamento de reads
-- Baixa cobertura em regiões problemáticas
-- Potencial de falsos positivos
+════════════════════════════════════════════════════════════════════════════
 
-**Solução ETAPA 7**: HomologyAnalyzer + PseudogeneRiskDetector detectam isto.
+💡 Conceitos Principais
 
-### Métricas de Qualidade
-- **Breadth**: % bases com cobertura adequada
-- **Fold-80**: Uniformidade de distribuição
-- **Mapeability**: Dificuldade de mapear reads naquela região
+### ETAPA 7: QC Clínico
+- **HomologyAnalyzer**: Detecta contaminação de pseudogene PMS2
+- **PseudogeneRiskDetector**: Score de risco (0-100)
+- **BreadthAnalyzer**: % bases com cobertura adequada
+- **UniformityAnalyzer**: Fold-80 (uniformidade de distribuição)
+- **SeverityClassifier**: Traduz métricas técnicas em ações clínicas (Monitor/Review/Validate/Resequence)
 
-### Severidade Clínica
-Traduz dados técnicos em ações clínicas:
-- ℹ️ **LOW**: Monitor
-- ⚠️ **MEDIUM**: Review
-- 🚨 **HIGH**: Validate (Sanger)
-- 🚫 **CRITICAL**: Resequence
+### ETAPA 8: Orquestração & Consolidação
+- **Série**: VCF parse e análise ACMG (ordem crítica)
+- **Paralelo**: 6 análises simultâneas em threads (performance)
+- **Sincronização**: ThreadPoolExecutor aguarda .result() de todas
+- **Consolidação**: Agregar múltiplos outputs em dataset único
+- **JSON-compatible**: Pronto para relatórios HTML
 
----
+════════════════════════════════════════════════════════════════════════════
 
-## 🔗 Referências
+🔗 Referências Científicas
 
-- **InSiGHT Database**: https://www.insightdatabase.org/
-- **PMS2 Pseudogene**: DOI:10.1186/s12881-016-0356-5
-- **ACMG Guidelines**: https://www.acmg.net/
+### Lynch Syndrome & MMR
+- InSiGHT Database: https://www.insightdatabase.org/
+- PMS2 Pseudogene: DOI:10.1186/s12881-016-0356-5
+- ACMG Guidelines: https://www.acmg.net/
+- ClinVar: https://www.ncbi.nlm.nih.gov/clinvar/
 
----
+### Bioinformática
+- VCF Format (v4.2): https://samtools.github.io/hts-specs/VCFv4.2.pdf
+- pysam Documentation: https://pysam.readthedocs.io/
+- ThreadPoolExecutor: https://docs.python.org/3/library/concurrent.futures.html
 
-## 📝 Commits Recentes
-47dbb1f - ETAPA 7 COMPLETA: Documento de resumo para ETAPA 8
+════════════════════════════════════════════════════════════════════════════
 
-274deb5 - ETAPA 7: Criar 39 testes
+📝 Commits Recentes
+f914a9f - ETAPA 8 Session 3: PipelineIntegrator + ResultsAggregator (12/12 testes)
 
-d3ac7ec - ETAPA 7: Criar SeverityClassifier
+cbb0ccd - ETAPA 8 Session 2: _parse_vcf + _analyze_variants implementados
 
-acb21eb - ETAPA 7: Adicionar BreadthAnalyzer e UniformityAnalyzer
+[... commits ETAPA 7 anteriores ...]
+Para histórico completo:
+```bash
+git log --oneline | head -20
+```
 
-dd1a86b - ETAPA 7: Adicionar PseudogeneRiskDetector
+════════════════════════════════════════════════════════════════════════════
 
-050050e - ETAPA 7: Adicionar HomologyAnalyzer
----
+🚀 Próxima Etapa: ETAPA 9 (CLI + Deployment)
 
-## 🤝 Contribuições
+### O que será feito:
+[ ] CLI Integration
 
-Este projeto é desenvolvido como parte de aprendizado estruturado em Bioinformática Clínica.
+├─ Comando: vflow pipeline input.vcf --output reports/
 
-**Autor**: Carla Rodrigues (@carla-bioinfo)  
-**Data**: 18 de Junho de 2026
+├─ Parâmetros: --min-depth, --min-qual, --threads
 
----
+└─ Testes CLI
+[ ] End-to-end Testing
 
-## 📞 Próximas Etapas
-ETAPA 8: Pipeline Integration + HTML Reports
+├─ VCF real → HTML report
 
-├─ PipelineIntegrator (~200 linhas)
+├─ Performance profiling (esperado: 400-650ms)
 
-├─ HTMLReportGenerator (~300 linhas)
+└─ Validação de saída
+[ ] Documentação + Deployment
 
-├─ ResultsAggregator (~150 linhas)
+├─ GitHub Actions CI/CD
 
-├─ CLI Interface (~100 linhas)
+├─ Deploy em PyPI
 
-└─ Testes (~250 linhas)
-Tempo: 4-5 horas
+└─ Documentação Sphinx
+**Tempo estimado**: 8-10 horas
+**Score esperado**: 9.0/10
 
-Score esperado: 8.0/10
----
+════════════════════════════════════════════════════════════════════════════
 
-**Status**: ✅ ETAPA 7 Completa | 🚀 Pronto para ETAPA 8
+⚡ Comandos Rápidos (Copy-Paste Ready)
 
+```bash
+# Ativar venv
+source venv/bin/activate
+
+# Rodar ETAPA 8 testes
+pytest tests/unit/test_etapa8.py -v --tb=short
+
+# Rodar todos os testes
+pytest tests/unit/ -q --tb=no
+
+# Ver git log
+git log --oneline -10
+
+# Ver status
+git status --short
+```
+
+════════════════════════════════════════════════════════════════════════════
+
+✅ Checklist para Próxima Sessão
+
+Para começar ETAPA 9, confirme:
+
+- [x] ETAPA 7: 39 testes passando
+- [x] ETAPA 8: 12 testes passando
+- [ ] VCF de teste em examples/ (confirmar)
+- [ ] Dependências instaladas (pip install -r requirements.txt)
+- [ ] Venv ativado antes de rodar testes
+
+════════════════════════════════════════════════════════════════════════════
+
+👤 Autor & Contribuições
+
+**Carla Rodrigues**
+- Bioinformatician in training
+- GitHub: @carla-bioinfo
+- Especialista em: Lynch Syndrome, Variantes MMR, Análise genômica
+
+Desenvolvido como aprendizado estruturado em **Bioinformática Clínica Translacional**.
+
+════════════════════════════════════════════════════════════════════════════
+
+📞 Status Final
+
+- ✅ ETAPA 7 Completa (39 testes)
+- ✅ ETAPA 8 Completa (12 testes) ← **VOCÊ ESTÁ AQUI**
+- ⏳ ETAPA 9 Próximo (CLI + Deployment)
+
+**Score: 8.0/10**
+**Tempo total investido**: ~40 horas
+**Próxima meta**: 9.0/10 (ETAPA 9)
+
+Última atualização: 19 Junho 2026
