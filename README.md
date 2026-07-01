@@ -428,7 +428,7 @@ Para começar ETAPA 9, confirme:
 **Carla Rodrigues**
 - Bioinformatician in training
 - GitHub: @carla-bioinfo
-- Especialista em: Lynch Syndrome, Variantes MMR, Análise genômica
+- Estudante com foco em: Lynch Syndrome, Variantes MMR, Análise genômica
 
 Desenvolvido como aprendizado estruturado em **Bioinformática Clínica Translacional**.
 
